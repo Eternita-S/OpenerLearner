@@ -28,7 +28,7 @@ namespace OpenerHelper
             if (!open) return;
             if (ImGui.Begin("OpenerHelper configuration", ref open))
             {
-                foreach (var e in p.cfg.openerDic.Keys)
+                foreach (var e in p.cfg.openerDic.Keys.ToArray())
                 {
                     if (ImGui.CollapsingHeader(p.pi.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
                     {
