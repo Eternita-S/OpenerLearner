@@ -22,6 +22,8 @@ namespace OpenerHelper
         static Vector2 Vector2Scale = new Vector2(48f, 48f);
         private Dictionary<uint, TextureWrap> textures;
 
+        internal (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
+
         public Drawer(OpenerHelper p)
         {
             this.p = p;
@@ -46,10 +48,11 @@ namespace OpenerHelper
             {
                 if (ImGui.BeginMenuBar())
                 {
-                    if (ImGui.BeginMenu("Choix"))
+                    if (ImGui.BeginMenu(CurrentlySelected.s[CurrentlySelected.i]))
                     {
                         if (ImGui.MenuItem("Opener"))
                         {
+                            CurrentlySelected.i = 0;
                             p.currentSkills = p.cfg.openerDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
                             if (p.currentSkills.Length > 0)
                             {
@@ -58,7 +61,12 @@ namespace OpenerHelper
                         }
                         if (ImGui.MenuItem("Rotation"))
                         {
-                            // ...
+                            CurrentlySelected.i = 1;
+                            p.currentSkills = p.cfg.rotationDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                            if (p.currentSkills.Length > 0)
+                            {
+                                p.nextSkill = p.currentSkills[0];
+                            }
                         }
                         ImGui.EndMenu();
                     }

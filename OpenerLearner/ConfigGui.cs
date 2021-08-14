@@ -18,6 +18,8 @@ namespace OpenerHelper
             p.pi.UiBuilder.OnBuildUi += Draw;
         }
 
+        private (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
+
         public void Dispose()
         {
             p.pi.UiBuilder.OnBuildUi -= Draw;
@@ -26,26 +28,72 @@ namespace OpenerHelper
         internal void Draw()
         {
             if (!open) return;
-            if (ImGui.Begin("OpenerHelper configuration", ref open))
+            if (ImGui.Begin("OpenerHelper configuration", ref open, ImGuiWindowFlags.MenuBar))
             {
-                foreach (var e in p.cfg.openerDic.Keys.ToArray())
+                if (ImGui.BeginMenuBar())
                 {
-                    if (ImGui.CollapsingHeader(p.pi.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
+                    if (ImGui.BeginMenu(CurrentlySelected.s[CurrentlySelected.i]))
                     {
-                        var text = string.Join(",", p.cfg.openerDic[e]) ;
-                        ImGui.InputText("##opener" + e, ref text, 10000);
-                        try
+                        if (ImGui.MenuItem("Opener"))
                         {
-                            p.cfg.openerDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
+                            CurrentlySelected.i = 0;
+                            
                         }
-                        catch (Exception) { }
+                        if (ImGui.MenuItem("Rotation"))
+                        {
+                            CurrentlySelected.i = 1;
+                        }
+                        ImGui.EndMenu();
+                    }
+                    ImGui.EndMenuBar();
+                }
+                if (CurrentlySelected.i == 0)
+                {
+                    foreach (var e in p.cfg.openerDic.Keys.ToArray())
+                    {
+                        if (ImGui.CollapsingHeader(p.pi.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
+                        {
+                            var text = string.Join(",", p.cfg.openerDic[e]);
+                            ImGui.InputText("##opener" + e, ref text, 10000);
+                            try
+                            {
+                                p.cfg.openerDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
+                            }
+                            catch (Exception) { }
+                        }
                     }
                 }
+                if (CurrentlySelected.i == 1)
+                {
+                    foreach (var e in p.cfg.rotationDic.Keys.ToArray())
+                    {
+                        if (ImGui.CollapsingHeader(p.pi.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
+                        {
+                            var text = string.Join(",", p.cfg.rotationDic[e]);
+                            ImGui.InputText("##rotation" + e, ref text, 10000);
+                            try
+                            {
+                                p.cfg.rotationDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
+                            }
+                            catch (Exception) { }
+                        }
+                    }
+                }
+
+
             }
             ImGui.End();
             if (!open)
             {
-                p.currentSkills = p.cfg.openerDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                if (CurrentlySelected.i == 0)
+                {
+                    p.currentSkills = p.cfg.openerDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                }
+                if (CurrentlySelected.i == 1)
+                {
+                    p.currentSkills = p.cfg.rotationDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                }
+
                 if (p.currentSkills.Length > 0)
                 {
                     p.nextSkill = p.currentSkills[0];
