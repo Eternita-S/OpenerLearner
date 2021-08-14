@@ -67,5 +67,8 @@
     <Compile Include="Drawer.cs" />
     <Compile Include="OpenerHelper.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Test.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
