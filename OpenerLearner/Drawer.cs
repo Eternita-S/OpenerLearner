@@ -50,7 +50,11 @@ namespace OpenerHelper
                     {
                         if (ImGui.MenuItem("Opener"))
                         {
-                            // ...
+                            p.currentSkills = p.cfg.openerDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                            if (p.currentSkills.Length > 0)
+                            {
+                                p.nextSkill = p.currentSkills[0];
+                            }
                         }
                         if (ImGui.MenuItem("Rotation"))
                         {

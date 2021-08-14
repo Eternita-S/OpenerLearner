@@ -33,10 +33,10 @@ namespace OpenerHelper
         private const ushort FFXIVIpcSkillHandler = 373;
         private bool inCombat;
         private uint acId;
-        internal uint[] currentSkills = new uint[] { 7524, 7507, 7524, 7505 };
-        private uint[] openerSkills = new uint[] {7524,7507,7524,7505 };
-        private uint[] rotationSkills = new uint[] { }; 
-        private uint nextSkill;
+        internal uint[] currentSkills = new uint[] {  };//7524,7507,7524,7505
+        //private uint[] openerSkills = new uint[] {};
+        //private uint[] rotationSkills = new uint[] { }; 
+        internal uint nextSkill;
         internal uint currentSkill = 0;
 
 
@@ -67,12 +67,10 @@ namespace OpenerHelper
                     cfg.openerDic.Add((byte)e.RowId, new uint[] { });
                 }
             }
+            //currentSkills = cfg.openerDic[(byte)pi.ClientState.LocalPlayer?.ClassJob.Id];
             configGui = new ConfigGui(this);
             pi.UiBuilder.OnOpenConfigUi += delegate { configGui.open = true; };
             pi.CommandManager.AddHandler("/opener", new CommandInfo(delegate { configGui.open = true; }));
-
-            nextSkill = currentSkills[0];
-            
         }
 
         private void NetworkMessageReceived(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
@@ -80,18 +78,21 @@ namespace OpenerHelper
             if (opCode == FFXIVIpcSkillHandler && direction == NetworkMessageDirection.ZoneUp)
             {
                 acId = *(uint*)(dataPtr + 0x4);
-                if (currentSkills[currentSkill] == acId)
+                if (currentSkills.Length > 0)
                 {
-                    currentSkill++;
-                    nextSkill = currentSkills[currentSkill];
-                }
-                else
-                {
-                    pi.Framework.Gui.Chat.Print("Opener failed");
-                }
-                if(currentSkill==currentSkills.Length)
-                {
-                    pi.Framework.Gui.Chat.Print("Opener success");
+                    if (currentSkills[currentSkill] == acId)
+                    {
+                        currentSkill++;
+                        nextSkill = currentSkills[currentSkill];
+                    }
+                    else
+                    {
+                        pi.Framework.Gui.Chat.Print("Opener failed");
+                    }
+                    if (currentSkill == currentSkills.Length)
+                    {
+                        pi.Framework.Gui.Chat.Print("Opener success");
+                    }
                 }
             }
         }

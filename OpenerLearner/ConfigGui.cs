@@ -45,6 +45,11 @@ namespace OpenerHelper
             ImGui.End();
             if (!open)
             {
+                p.currentSkills = p.cfg.openerDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                if (p.currentSkills.Length > 0)
+                {
+                    p.nextSkill = p.currentSkills[0];
+                }
                 p.cfg.Save();
                 p.pi.Framework.Gui.Toast.ShowQuest("Configuration saved", new QuestToastOptions() { DisplayCheckmark = true, PlaySound = true });
             }
