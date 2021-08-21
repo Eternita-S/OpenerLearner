@@ -74,7 +74,7 @@
     <Compile Include="OpenerHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Test.png">
+    <Content Include="Highlight.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

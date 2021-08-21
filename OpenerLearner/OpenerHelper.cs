@@ -29,6 +29,7 @@ namespace OpenerHelper
         internal ConfigGui configGui;
 
         public Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> ActionsDic { get; private set; }
+        internal (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
 
         private const ushort FFXIVIpcSkillHandler = 373;
 
@@ -48,6 +49,7 @@ namespace OpenerHelper
             drawer.Dispose();
             cfg.Save();
             configGui.Dispose();
+            pi.CommandManager.RemoveHandler("/openerconfig");
             pi.CommandManager.RemoveHandler("/opener");
             pi.Dispose();
         }
@@ -77,16 +79,17 @@ namespace OpenerHelper
             }
             if (pi.ClientState.LocalPlayer != null)
             {
-                if(drawer.CurrentlySelected.i == 0)
+                if(CurrentlySelected.i == 0)
                     currentSkills = cfg.openerDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
-                if (drawer.CurrentlySelected.i == 1)
+                if (CurrentlySelected.i == 1)
                     currentSkills = cfg.rotationDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
             }
 
             configGui = new ConfigGui(this);
             pi.UiBuilder.OnOpenConfigUi += delegate { configGui.open = true; };
 
-            pi.CommandManager.AddHandler("/opener", new CommandInfo(delegate { configGui.open = true; }));
+            pi.CommandManager.AddHandler("/openerconfig", new CommandInfo(delegate { configGui.open = true; }));
+            pi.CommandManager.AddHandler("/opener", new CommandInfo(delegate { drawer.open = true; }));
 
             currentJob = pi.ClientState.LocalPlayer?.ClassJob.Id;
         }
@@ -96,22 +99,49 @@ namespace OpenerHelper
             if (opCode == FFXIVIpcSkillHandler && direction == NetworkMessageDirection.ZoneUp)
             {
                 acId = *(uint*)(dataPtr + 0x4);
-                if (currentSkills.Length > 0)
+                if(CurrentlySelected.i == 0)
                 {
-                    if (currentSkills[currentSkill] == acId)
+                    if (currentSkills.Length > 0)//Opener
                     {
-                        currentSkill++;
-                        nextSkill = currentSkills[currentSkill];
-                    }
-                    else
-                    {
-                        pi.Framework.Gui.Chat.Print("Opener failed");
-                    }
-                    if (currentSkill == currentSkills.Length)
-                    {
-                        pi.Framework.Gui.Chat.Print("Opener success");
+                        if (currentSkills[currentSkill] == acId)
+                        {
+                            currentSkill++;
+                            if(currentSkill < currentSkills.Length)
+                                nextSkill = currentSkills[currentSkill];
+                        }
+                        else
+                        {
+                            //pi.Framework.Gui.Chat.Print("Opener failed");
+                        }
+                        if (currentSkill == currentSkills.Length)
+                        {
+                            pi.Framework.Gui.Chat.Print("Opener success");
+                            currentSkills = cfg.rotationDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
+                            if (currentSkills.Length > 0)
+                                nextSkill = currentSkills[0];
+
+                            currentSkill = 0;
+                            CurrentlySelected.i = 1;
+
+                        }
                     }
                 }
+                if(CurrentlySelected.i == 1)//Rotation
+                {
+                    if (currentSkills.Length > 0)
+                    {
+                        if (currentSkills[currentSkill] == acId)
+                        {
+                            currentSkill++;
+                            if (currentSkill >= currentSkills.Length)
+                            {
+                                currentSkill = 0;
+                            }
+                            nextSkill = currentSkills[currentSkill];
+                        }
+                    }
+                }
+
             }
         }
 
@@ -120,8 +150,11 @@ namespace OpenerHelper
             if ((pi.ClientState.Condition[ConditionFlag.InCombat] != inCombat) && pi.ClientState.Condition[ConditionFlag.InCombat] == false)
             {
                 pi.Framework.Gui.Chat.Print("Went out of combat");
-                currentSkill = 0;
-                nextSkill = currentSkills[currentSkill];
+                if (currentSkills.Length > 0)//Opener
+                {
+                    currentSkill = 0;
+                    nextSkill = currentSkills[currentSkill];
+                }
             }
             inCombat = pi.ClientState.Condition[ConditionFlag.InCombat];
 
@@ -130,9 +163,9 @@ namespace OpenerHelper
                 currentJob = pi.ClientState.LocalPlayer?.ClassJob.Id;
                 if (currentJob != null)
                 {
-                    if (drawer.CurrentlySelected.i == 0)
+                    if (CurrentlySelected.i == 0)
                         currentSkills = cfg.openerDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
-                    if (drawer.CurrentlySelected.i == 1)
+                    if (CurrentlySelected.i == 1)
                         currentSkills = cfg.rotationDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
                 }
             }

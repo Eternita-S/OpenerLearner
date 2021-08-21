@@ -22,14 +22,14 @@ namespace OpenerHelper
         static Vector2 Vector2Scale = new Vector2(48f, 48f);
         private Dictionary<uint, TextureWrap> textures;
 
-        internal (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
+        internal bool open = false;
 
         public Drawer(OpenerHelper p)
         {
             this.p = p;
             p.pi.UiBuilder.OnBuildUi += Draw;
             textures = new Dictionary<uint, TextureWrap>();
-            TestImg = p.pi.UiBuilder.LoadImage(Path.Combine(Path.GetDirectoryName(p.AssemblyLocation), "Test.png"));
+            TestImg = p.pi.UiBuilder.LoadImage(Path.Combine(Path.GetDirectoryName(p.AssemblyLocation), "Highlight.png"));
         }
 
         public void Dispose()
@@ -43,32 +43,31 @@ namespace OpenerHelper
 
         private void Draw()
         {
+            if (!open) return;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-            if (ImGui.Begin("OpenerLearner", ImGuiWindowFlags.MenuBar))
+            if (ImGui.Begin("OpenerLearner", ref open, ImGuiWindowFlags.MenuBar))
             {
                 if (ImGui.BeginMenuBar())
                 {
-                    if (ImGui.BeginMenu(CurrentlySelected.s[CurrentlySelected.i]))
+                    if (ImGui.MenuItem("Opener"))
                     {
-                        if (ImGui.MenuItem("Opener"))
+                        p.CurrentlySelected.i = 0;
+                        p.currentSkills = p.cfg.openerDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                        if (p.currentSkills.Length > 0)
                         {
-                            CurrentlySelected.i = 0;
-                            p.currentSkills = p.cfg.openerDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
-                            if (p.currentSkills.Length > 0)
-                            {
-                                p.nextSkill = p.currentSkills[0];
-                            }
+                            p.nextSkill = p.currentSkills[0];
                         }
-                        if (ImGui.MenuItem("Rotation"))
+                        p.currentSkill = 0;
+                    }
+                    if (ImGui.MenuItem("Rotation"))
+                    {
+                        p.CurrentlySelected.i = 1;
+                        p.currentSkills = p.cfg.rotationDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                        if (p.currentSkills.Length > 0)
                         {
-                            CurrentlySelected.i = 1;
-                            p.currentSkills = p.cfg.rotationDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
-                            if (p.currentSkills.Length > 0)
-                            {
-                                p.nextSkill = p.currentSkills[0];
-                            }
+                            p.nextSkill = p.currentSkills[0];
                         }
-                        ImGui.EndMenu();
+                        p.currentSkill = 0;
                     }
                     ImGui.EndMenuBar();
                 }
@@ -77,13 +76,19 @@ namespace OpenerHelper
                 {
                     prevCursorPos = ImGui.GetCursorPos();
                     ImGuiDrawSkill(p.currentSkills[i]);
+                    if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+                    {
+                        p.currentSkill = (uint)i;
+                    }
                     if (i == p.currentSkill)
                     {
                         ImGui.SetCursorPos(prevCursorPos);
                         ImGui.Image(TestImg.ImGuiHandle, Vector2Scale, Vector2.Zero, Vector2.One, Vector4.One);
-
                     }
                     ImGui.SameLine();
+                    if ((i+1)% 10 == 0)
+                        ImGui.NewLine();
+
                 }
             }
             ImGui.End();

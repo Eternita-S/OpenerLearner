@@ -11,14 +11,15 @@ namespace OpenerHelper
     class ConfigGui : IDisposable
     {
         internal bool open = false;
+
         OpenerHelper p;
+
+        private (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
         internal ConfigGui(OpenerHelper p)
         {
             this.p = p;
             p.pi.UiBuilder.OnBuildUi += Draw;
         }
-
-        private (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
 
         public void Dispose()
         {
