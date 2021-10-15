@@ -1,7 +1,6 @@
 ﻿using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
-using Dalamud.Game.Internal.Network;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;

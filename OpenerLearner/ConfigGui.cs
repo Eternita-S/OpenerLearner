@@ -1,5 +1,4 @@
-﻿using Dalamud.Game.Internal.Gui.Toast;
-using ImGuiNET;
+﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
