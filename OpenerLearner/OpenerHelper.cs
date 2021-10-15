@@ -31,7 +31,8 @@ namespace OpenerHelper
         public Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> ActionsDic { get; private set; }
         internal (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
 
-        private const ushort FFXIVIpcSkillHandler = 373;
+        private const ushort FFXIVIpcSkillHandler = 732;
+        private IntPtr* g_LocalPlayer;
 
         private bool inCombat;
 
@@ -59,6 +60,8 @@ namespace OpenerHelper
             this.pi = pluginInterface;
             pi.Framework.OnUpdateEvent += Tick;
             pi.Framework.Network.OnNetworkMessage += NetworkMessageReceived;
+
+            g_LocalPlayer = (IntPtr*)pi.TargetModuleScanner.GetStaticAddressFromSig("48 89 05 ?? ?? ?? ?? 88 05 ?? ?? ?? ?? 88 05");
 
             drawer = new Drawer(this);
 
@@ -116,7 +119,7 @@ namespace OpenerHelper
                         if (currentSkill == currentSkills.Length)
                         {
                             pi.Framework.Gui.Chat.Print("Opener success");
-                            currentSkills = cfg.rotationDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
+                            currentSkills = cfg.rotationDic[(byte)currentJob.Value];//pi.ClientState.LocalPlayer.ClassJob.Id
                             if (currentSkills.Length > 0)
                                 nextSkill = currentSkills[0];
 
@@ -152,23 +155,33 @@ namespace OpenerHelper
                 pi.Framework.Gui.Chat.Print("Went out of combat");
                 if (currentSkills.Length > 0)//Opener
                 {
+                    currentSkills = cfg.openerDic[(byte)currentJob.Value];//pi.ClientState.LocalPlayer.ClassJob.Id
+                    if (currentSkills.Length > 0)
+                        nextSkill = currentSkills[0];
+
                     currentSkill = 0;
-                    nextSkill = currentSkills[currentSkill];
+                    CurrentlySelected.i = 0;
                 }
             }
             inCombat = pi.ClientState.Condition[ConditionFlag.InCombat];
 
-            if (pi.ClientState.LocalPlayer?.ClassJob.Id != currentJob)
+            if (GetLPClassJob() != currentJob)
             {
-                currentJob = pi.ClientState.LocalPlayer?.ClassJob.Id;
+                currentJob = GetLPClassJob();
                 if (currentJob != null)
                 {
                     if (CurrentlySelected.i == 0)
-                        currentSkills = cfg.openerDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
+                        currentSkills = cfg.openerDic[(byte)currentJob.Value];
                     if (CurrentlySelected.i == 1)
-                        currentSkills = cfg.rotationDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
+                        currentSkills = cfg.rotationDic[(byte)currentJob.Value];
                 }
             }
+        }
+
+        byte? GetLPClassJob()
+        {
+            if (*g_LocalPlayer == IntPtr.Zero) return null;
+            return *(byte*)(*g_LocalPlayer + 0x1E2);
         }
 
         public enum ClassJob : byte
