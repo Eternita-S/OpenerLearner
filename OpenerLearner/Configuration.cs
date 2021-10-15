@@ -19,14 +19,9 @@ namespace OpenerHelper
         [NonSerialized]
         private DalamudPluginInterface pluginInterface;
 
-        public void Initialize(DalamudPluginInterface pluginInterface)
-        {
-            this.pluginInterface = pluginInterface;
-        }
-
         public void Save()
         {
-            pluginInterface.SavePluginConfig(this);
+            Svc.PluginInterface.SavePluginConfig(this);
         }
     }
 }

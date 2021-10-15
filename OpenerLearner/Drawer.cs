@@ -27,14 +27,14 @@ namespace OpenerHelper
         public Drawer(OpenerHelper p)
         {
             this.p = p;
-            p.pi.UiBuilder.OnBuildUi += Draw;
+            Svc.PluginInterface.UiBuilder.Draw += Draw;
             textures = new Dictionary<uint, TextureWrap>();
-            TestImg = p.pi.UiBuilder.LoadImage(Path.Combine(Path.GetDirectoryName(p.AssemblyLocation), "Highlight.png"));
+            TestImg = Svc.PluginInterface.UiBuilder.LoadImage(Path.Combine(Path.GetDirectoryName(p.AssemblyLocation), "Highlight.png"));
         }
 
         public void Dispose()
         {
-            p.pi.UiBuilder.OnBuildUi -= Draw;
+            Svc.PluginInterface.UiBuilder.Draw -= Draw;
             foreach (var t in textures.Values)
             {
                 t.Dispose();
@@ -52,7 +52,7 @@ namespace OpenerHelper
                     if (ImGui.MenuItem("Opener"))
                     {
                         p.CurrentlySelected.i = 0;
-                        p.currentSkills = p.cfg.openerDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                        p.currentSkills = p.cfg.openerDic[(byte)Svc.ClientState.LocalPlayer?.ClassJob.Id];
                         if (p.currentSkills.Length > 0)
                         {
                             p.nextSkill = p.currentSkills[0];
@@ -62,7 +62,7 @@ namespace OpenerHelper
                     if (ImGui.MenuItem("Rotation"))
                     {
                         p.CurrentlySelected.i = 1;
-                        p.currentSkills = p.cfg.rotationDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                        p.currentSkills = p.cfg.rotationDic[(byte)Svc.ClientState.LocalPlayer?.ClassJob.Id];
                         if (p.currentSkills.Length > 0)
                         {
                             p.nextSkill = p.currentSkills[0];
@@ -100,19 +100,19 @@ namespace OpenerHelper
             {
                 if (!textures.ContainsKey(id))
                 {
-                    textures[id] = p.pi.Data.GetImGuiTexture(p.pi.Data.GetIcon(p.ActionsDic[id].Icon).FilePath.Path.Replace(".tex", "_hr1.tex"));
+                    textures[id] = Svc.Data.GetImGuiTexture(Svc.Data.GetIcon(p.ActionsDic[id].Icon).FilePath.Path.Replace(".tex", "_hr1.tex"));
                 }
                 //ImGui.SetCursorPos((ImGui.GetWindowSize() - new Vector2(textures[id].Height, textures[id].Width)) * 0.5f); //To center the image
                 ImGui.Image(textures[id].ImGuiHandle, Vector2Scale, Vector2.Zero, Vector2.One, Vector4.One);
             }
             catch (Exception ex)
             {
-                p.pi.Framework.Gui.Chat.Print("[Error] " + ex.Message + "\n" + ex.StackTrace);
+                Svc.Chat.Print("[Error] " + ex.Message + "\n" + ex.StackTrace);
             }
         }
         private string FindTexture()
         {
-            var o = p.pi.Framework.Gui.GetUiObjectByName("_ActionBar01", 1);
+            var o = Svc.GameGui.GetAddonByName("_ActionBar01", 1);
             var masterWindow = (AtkUnitBase*)o;
             var skillCNode = (AtkComponentNode*)masterWindow->UldManager.NodeList[10];
             var skillCNode2 = (AtkComponentNode*)skillCNode->Component->UldManager.NodeList[0];
@@ -122,7 +122,7 @@ namespace OpenerHelper
             var textureInfo = skillImage->PartsList->Parts[skillImage->PartId].UldAsset;
             if (textureInfo->AtkTexture.TextureType == TextureType.Resource)
             {
-                var texturePath = Marshal.PtrToStringAnsi((IntPtr)textureInfo->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName);
+                var texturePath = textureInfo->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName.ToString();
                 //textures[texturePath] = pi.Data.GetImGuiTexture(texturePath);
                 return texturePath;
             }

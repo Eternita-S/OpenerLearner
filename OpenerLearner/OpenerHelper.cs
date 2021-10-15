@@ -1,6 +1,9 @@
-﻿using Dalamud.Game.ClientState;
+﻿using Dalamud.Game;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Network;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -18,7 +21,6 @@ namespace OpenerHelper
 {
     unsafe class OpenerHelper : IDalamudPlugin
     {
-        internal DalamudPluginInterface pi;
         public string Name => "OpenerHelper";
         public string AssemblyLocation { get => assemblyLocation; set => assemblyLocation = value; }
         private string assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -31,7 +33,6 @@ namespace OpenerHelper
         internal (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
 
         private const ushort FFXIVIpcSkillHandler = 732;
-        private IntPtr* g_LocalPlayer;
 
         private bool inCombat;
 
@@ -44,31 +45,29 @@ namespace OpenerHelper
 
         public void Dispose()
         {
-            pi.Framework.OnUpdateEvent -= Tick;
-            pi.Framework.Network.OnNetworkMessage -= NetworkMessageReceived;
+            Svc.Framework.Update -= Tick;
+            Svc.GameNetwork.NetworkMessage -= NetworkMessageReceived;
             drawer.Dispose();
             cfg.Save();
             configGui.Dispose();
-            pi.CommandManager.RemoveHandler("/openerconfig");
-            pi.CommandManager.RemoveHandler("/opener");
-            pi.Dispose();
+            Svc.Commands.RemoveHandler("/openerconfig");
+            Svc.Commands.RemoveHandler("/opener");
         }
 
-        public void Initialize(DalamudPluginInterface pluginInterface)
+        public OpenerHelper(DalamudPluginInterface pluginInterface)
         {
-            this.pi = pluginInterface;
-            pi.Framework.OnUpdateEvent += Tick;
-            pi.Framework.Network.OnNetworkMessage += NetworkMessageReceived;
+            pluginInterface.Create<Svc>();
 
-            g_LocalPlayer = (IntPtr*)pi.TargetModuleScanner.GetStaticAddressFromSig("48 89 05 ?? ?? ?? ?? 88 05 ?? ?? ?? ?? 88 05");
+            Svc.Framework.Update += Tick;
+            Svc.GameNetwork.NetworkMessage += NetworkMessageReceived;
 
             drawer = new Drawer(this);
 
-            ActionsDic = pi.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().ToDictionary(row => (uint)row.RowId, row => row);
+            ActionsDic = Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().ToDictionary(row => (uint)row.RowId, row => row);
 
             cfg = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            cfg.Initialize(pi);
-            foreach (var e in pi.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().Where(c => c.JobIndex > 0))
+
+            foreach (var e in Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().Where(c => c.JobIndex > 0))
             {
                 if (!cfg.openerDic.ContainsKey((byte)e.RowId))
                 {
@@ -79,21 +78,21 @@ namespace OpenerHelper
                     cfg.rotationDic.Add((byte)e.RowId, new uint[] { });
                 }
             }
-            if (pi.ClientState.LocalPlayer != null)
+            if (Svc.ClientState.LocalPlayer != null)
             {
                 if(CurrentlySelected.i == 0)
-                    currentSkills = cfg.openerDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
+                    currentSkills = cfg.openerDic[(byte)Svc.ClientState.LocalPlayer.ClassJob.Id];
                 if (CurrentlySelected.i == 1)
-                    currentSkills = cfg.rotationDic[(byte)pi.ClientState.LocalPlayer.ClassJob.Id];
+                    currentSkills = cfg.rotationDic[(byte)Svc.ClientState.LocalPlayer.ClassJob.Id];
             }
 
             configGui = new ConfigGui(this);
-            pi.UiBuilder.OnOpenConfigUi += delegate { configGui.open = true; };
+            Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate { configGui.open = true; };
 
-            pi.CommandManager.AddHandler("/openerconfig", new CommandInfo(delegate { configGui.open = true; }));
-            pi.CommandManager.AddHandler("/opener", new CommandInfo(delegate { drawer.open = true; }));
+            Svc.Commands.AddHandler("/openerconfig", new CommandInfo(delegate { configGui.open = true; }));
+            Svc.Commands.AddHandler("/opener", new CommandInfo(delegate { drawer.open = true; }));
 
-            currentJob = pi.ClientState.LocalPlayer?.ClassJob.Id;
+            currentJob = Svc.ClientState.LocalPlayer?.ClassJob.Id;
         }
 
         private void NetworkMessageReceived(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
@@ -113,12 +112,12 @@ namespace OpenerHelper
                         }
                         else
                         {
-                            //pi.Framework.Gui.Chat.Print("Opener failed");
+                            //Svc.Chat.Print("Opener failed");
                         }
                         if (currentSkill == currentSkills.Length)
                         {
-                            pi.Framework.Gui.Chat.Print("Opener success");
-                            currentSkills = cfg.rotationDic[(byte)currentJob.Value];//pi.ClientState.LocalPlayer.ClassJob.Id
+                            Svc.Chat.Print("Opener success");
+                            currentSkills = cfg.rotationDic[(byte)currentJob.Value];//Svc.ClientState.LocalPlayer.ClassJob.Id
                             if (currentSkills.Length > 0)
                                 nextSkill = currentSkills[0];
 
@@ -149,12 +148,12 @@ namespace OpenerHelper
 
         private void Tick(Framework framework)
         {
-            if ((pi.ClientState.Condition[ConditionFlag.InCombat] != inCombat) && pi.ClientState.Condition[ConditionFlag.InCombat] == false)
+            if ((Svc.Condition[ConditionFlag.InCombat] != inCombat) && Svc.Condition[ConditionFlag.InCombat] == false)
             {
-                pi.Framework.Gui.Chat.Print("Went out of combat");
+                Svc.Chat.Print("Went out of combat");
                 if (currentSkills.Length > 0)//Opener
                 {
-                    currentSkills = cfg.openerDic[(byte)currentJob.Value];//pi.ClientState.LocalPlayer.ClassJob.Id
+                    currentSkills = cfg.openerDic[(byte)currentJob.Value];//Svc.ClientState.LocalPlayer.ClassJob.Id
                     if (currentSkills.Length > 0)
                         nextSkill = currentSkills[0];
 
@@ -162,7 +161,7 @@ namespace OpenerHelper
                     CurrentlySelected.i = 0;
                 }
             }
-            inCombat = pi.ClientState.Condition[ConditionFlag.InCombat];
+            inCombat = Svc.Condition[ConditionFlag.InCombat];
 
             if (GetLPClassJob() != currentJob)
             {
@@ -179,8 +178,7 @@ namespace OpenerHelper
 
         byte? GetLPClassJob()
         {
-            if (*g_LocalPlayer == IntPtr.Zero) return null;
-            return *(byte*)(*g_LocalPlayer + 0x1E2);
+            return (byte?)(Svc.ClientState.LocalPlayer?.ClassJob.Id);
         }
 
         public enum ClassJob : byte

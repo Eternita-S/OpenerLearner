@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Game.Gui.Toast;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,12 +18,12 @@ namespace OpenerHelper
         internal ConfigGui(OpenerHelper p)
         {
             this.p = p;
-            p.pi.UiBuilder.OnBuildUi += Draw;
+            Svc.PluginInterface.UiBuilder.Draw += Draw;
         }
 
         public void Dispose()
         {
-            p.pi.UiBuilder.OnBuildUi -= Draw;
+            Svc.PluginInterface.UiBuilder.Draw -= Draw;
         }
 
         internal void Draw()
@@ -51,7 +52,7 @@ namespace OpenerHelper
                 {
                     foreach (var e in p.cfg.openerDic.Keys.ToArray())
                     {
-                        if (ImGui.CollapsingHeader(p.pi.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
+                        if (ImGui.CollapsingHeader(Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
                         {
                             var text = string.Join(",", p.cfg.openerDic[e]);
                             ImGui.InputText("##opener" + e, ref text, 10000);
@@ -67,7 +68,7 @@ namespace OpenerHelper
                 {
                     foreach (var e in p.cfg.rotationDic.Keys.ToArray())
                     {
-                        if (ImGui.CollapsingHeader(p.pi.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
+                        if (ImGui.CollapsingHeader(Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
                         {
                             var text = string.Join(",", p.cfg.rotationDic[e]);
                             ImGui.InputText("##rotation" + e, ref text, 10000);
@@ -87,11 +88,11 @@ namespace OpenerHelper
             {
                 if (CurrentlySelected.i == 0)
                 {
-                    p.currentSkills = p.cfg.openerDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                    p.currentSkills = p.cfg.openerDic[(byte)Svc.ClientState.LocalPlayer?.ClassJob.Id];
                 }
                 if (CurrentlySelected.i == 1)
                 {
-                    p.currentSkills = p.cfg.rotationDic[(byte)p.pi.ClientState.LocalPlayer?.ClassJob.Id];
+                    p.currentSkills = p.cfg.rotationDic[(byte)Svc.ClientState.LocalPlayer?.ClassJob.Id];
                 }
 
                 if (p.currentSkills.Length > 0)
@@ -99,7 +100,7 @@ namespace OpenerHelper
                     p.nextSkill = p.currentSkills[0];
                 }
                 p.cfg.Save();
-                p.pi.Framework.Gui.Toast.ShowQuest("Configuration saved", new QuestToastOptions() { DisplayCheckmark = true, PlaySound = true });
+                Svc.Toasts.ShowQuest("Configuration saved", new QuestToastOptions() { DisplayCheckmark = true, PlaySound = true });
             }
         }
     }
