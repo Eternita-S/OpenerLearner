@@ -32,7 +32,7 @@ namespace OpenerHelper
         public Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> ActionsDic { get; private set; }
         internal (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
 
-        private const ushort FFXIVIpcSkillHandler = 732;
+        private const ushort FFXIVIpcSkillHandler = 203;
 
         private bool inCombat;
 
@@ -78,7 +78,7 @@ namespace OpenerHelper
                     cfg.rotationDic.Add((byte)e.RowId, new uint[] { });
                 }
             }
-            if (Svc.ClientState.LocalPlayer != null)
+            if (Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.ClassJob.GameData.JobIndex > 0)
             {
                 if(CurrentlySelected.i == 0)
                     currentSkills = cfg.openerDic[(byte)Svc.ClientState.LocalPlayer.ClassJob.Id];
@@ -178,7 +178,8 @@ namespace OpenerHelper
 
         byte? GetLPClassJob()
         {
-            return (byte?)(Svc.ClientState.LocalPlayer?.ClassJob.Id);
+            if (Svc.ClientState.LocalPlayer == null || Svc.ClientState.LocalPlayer.ClassJob.GameData.JobIndex == 0) return null;
+            return (byte?)(Svc.ClientState.LocalPlayer.ClassJob.Id);
         }
 
         public enum ClassJob : byte
