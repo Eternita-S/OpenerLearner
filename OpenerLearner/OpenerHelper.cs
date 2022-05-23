@@ -8,6 +8,7 @@ using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImGuiScene;
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,7 +43,7 @@ namespace OpenerHelper
         private uint? currentJob = null;
 
         //Cache for skills loading
-        internal Dictionary<byte, IEnumerable<Lumina.Excel.GeneratedSheets.Action>> actionCache = new();
+        internal Dictionary<byte, Lumina.Excel.GeneratedSheets.Action[]> actionCache = new();
 
         public void Dispose()
         {
@@ -228,11 +229,12 @@ namespace OpenerHelper
         }
 
         //Get the actions of a job by ID and cache it
-        internal IEnumerable<Lumina.Excel.GeneratedSheets.Action> GetActionsByJobId(byte id)
+        internal Lumina.Excel.GeneratedSheets.Action[] GetActionsByJobId(byte id)
         {
             if (!actionCache.ContainsKey(id))
             {
-                actionCache[id] = Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Where(x => !x.IsPvP && x.ClassJob.Value.RowId == id);
+                actionCache[id] = Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Where(x => !x.IsPvP && x.ClassJob.Value?.RowId == id)
+                    .Union(Svc.Data.GetExcelSheet<ActionIndirection>().Where(x => x.ClassJob.Value?.RowId == id).Select(x => x.Name.Value)).OrderBy(x => x.RowId).ToArray();
             }
             return actionCache[id];
         }

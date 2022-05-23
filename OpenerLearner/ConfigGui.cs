@@ -47,6 +47,11 @@ namespace OpenerHelper
                         }
                         ImGui.EndMenu();
                     }
+                    if (ImGui.MenuItem("Save"))
+                    {
+                        SaveConfig();
+                    }
+
                     ImGui.EndMenuBar();
                 }
                 if (CurrentlySelected.i == 0)
@@ -56,12 +61,16 @@ namespace OpenerHelper
                         if (ImGui.CollapsingHeader(Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
                         {
                             var text = string.Join(",", p.cfg.openerDic[e]);
-                            ImGui.InputText("##opener" + e, ref text, 10000);
-                            try
+                            
+                            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                            if (ImGui.InputText("##opener" + e, ref text, 1000))
                             {
-                                p.cfg.openerDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
+                                try
+                                {
+                                    p.cfg.openerDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
+                                }
+                                catch (Exception) { }
                             }
-                            catch (Exception) { }
 
                             foreach (var s in p.GetActionsByJobId(e))
                             {
@@ -80,9 +89,10 @@ namespace OpenerHelper
                                     }
                                     catch (Exception) { }
                                 }
-                                if (ImGui.GetContentRegionAvail().X > ImGui.GetCursorPosX() - cPos + ImGui.GetStyle().ItemSpacing.X)
+                                ImGui.SameLine();
+                                if (ImGui.GetContentRegionAvail().X < ImGui.GetCursorPosX() - cPos + ImGui.GetStyle().ItemSpacing.X)
                                 {
-                                    ImGui.SameLine();
+                                    ImGui.Dummy(Vector2.Zero);
                                 }
                             }
                             ImGui.SameLine();
@@ -97,12 +107,41 @@ namespace OpenerHelper
                         if (ImGui.CollapsingHeader(Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(e).Name))
                         {
                             var text = string.Join(",", p.cfg.rotationDic[e]);
-                            ImGui.InputText("##rotation" + e, ref text, 10000);
-                            try
+                            
+                            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                            if (ImGui.InputText("##rotation" + e, ref text, 10000))
                             {
-                                p.cfg.rotationDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
+                                try
+                                {
+                                    p.cfg.rotationDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
+                                }
+                                catch (Exception) { }
                             }
-                            catch (Exception) { }
+                            foreach (var s in p.GetActionsByJobId(e))
+                            {
+                                var cPos = ImGui.GetCursorPosX();
+                                p.drawer.ImGuiDrawSkill(s.RowId);
+                                if (ImGui.IsItemHovered())
+                                {
+                                    ImGui.SetTooltip($"{s.Name}");
+                                    ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                                }
+                                if (ImGui.IsItemClicked())
+                                {
+                                    try
+                                    {
+                                        p.cfg.rotationDic[e] = p.cfg.rotationDic[e].Append(s.RowId).ToArray();
+                                    }
+                                    catch (Exception) { }
+                                }
+                                ImGui.SameLine();
+                                if (ImGui.GetContentRegionAvail().X < ImGui.GetCursorPosX() - cPos + ImGui.GetStyle().ItemSpacing.X)
+                                {
+                                    ImGui.Dummy(Vector2.Zero);
+                                }
+                            }
+                            ImGui.SameLine();
+                            ImGui.Dummy(Vector2.Zero);
                         }
                     }
                 }
@@ -112,22 +151,27 @@ namespace OpenerHelper
             ImGui.End();
             if (!open)
             {
-                if (CurrentlySelected.i == 0)
-                {
-                    p.currentSkills = p.cfg.openerDic[(byte)Svc.ClientState.LocalPlayer?.ClassJob.Id];
-                }
-                if (CurrentlySelected.i == 1)
-                {
-                    p.currentSkills = p.cfg.rotationDic[(byte)Svc.ClientState.LocalPlayer?.ClassJob.Id];
-                }
-
-                if (p.currentSkills.Length > 0)
-                {
-                    p.nextSkill = p.currentSkills[0];
-                }
-                p.cfg.Save();
-                Svc.Toasts.ShowQuest("Configuration saved", new QuestToastOptions() { DisplayCheckmark = true, PlaySound = true });
+                SaveConfig();
             }
+        }
+
+        private void SaveConfig()
+        {
+            if (CurrentlySelected.i == 0)
+            {
+                p.currentSkills = p.cfg.openerDic[(byte)Svc.ClientState.LocalPlayer?.ClassJob.Id];
+            }
+            if (CurrentlySelected.i == 1)
+            {
+                p.currentSkills = p.cfg.rotationDic[(byte)Svc.ClientState.LocalPlayer?.ClassJob.Id];
+            }
+
+            if (p.currentSkills.Length > 0)
+            {
+                p.nextSkill = p.currentSkills[0];
+            }
+            p.cfg.Save();
+            Svc.Toasts.ShowQuest("Configuration saved", new QuestToastOptions() { DisplayCheckmark = true, PlaySound = true });
         }
     }
 }
