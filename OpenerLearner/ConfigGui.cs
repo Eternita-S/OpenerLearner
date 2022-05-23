@@ -3,6 +3,7 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -61,6 +62,31 @@ namespace OpenerHelper
                                 p.cfg.openerDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
                             }
                             catch (Exception) { }
+
+                            foreach (var s in p.GetActionsByJobId(e))
+                            {
+                                var cPos = ImGui.GetCursorPosX();
+                                p.drawer.ImGuiDrawSkill(s.RowId);
+                                if (ImGui.IsItemHovered())
+                                {
+                                    ImGui.SetTooltip($"{s.Name}");
+                                    ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                                }
+                                if (ImGui.IsItemClicked())
+                                {
+                                    try
+                                    {
+                                        p.cfg.openerDic[e] = p.cfg.openerDic[e].Append(s.RowId).ToArray();
+                                    }
+                                    catch (Exception) { }
+                                }
+                                if (ImGui.GetContentRegionAvail().X > ImGui.GetCursorPosX() - cPos + ImGui.GetStyle().ItemSpacing.X)
+                                {
+                                    ImGui.SameLine();
+                                }
+                            }
+                            ImGui.SameLine();
+                            ImGui.Dummy(Vector2.Zero);
                         }
                     }
                 }

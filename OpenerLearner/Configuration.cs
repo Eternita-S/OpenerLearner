@@ -16,12 +16,11 @@ namespace OpenerHelper
         public Dictionary<byte, uint[]> openerDic = new Dictionary<byte, uint[]>();
         public Dictionary<byte, uint[]> rotationDic = new Dictionary<byte, uint[]>();
 
-        [NonSerialized]
-        private DalamudPluginInterface pluginInterface;
 
         public void Save()
         {
             Svc.PluginInterface.SavePluginConfig(this);
         }
+
     }
 }

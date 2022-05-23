@@ -29,7 +29,7 @@ namespace OpenerHelper
             this.p = p;
             Svc.PluginInterface.UiBuilder.Draw += Draw;
             textures = new Dictionary<uint, TextureWrap>();
-            TestImg = Svc.PluginInterface.UiBuilder.LoadImage(Path.Combine(Path.GetDirectoryName(p.AssemblyLocation), "Highlight.png"));
+            TestImg = Svc.PluginInterface.UiBuilder.LoadImage(Path.Combine(Svc.PluginInterface.AssemblyLocation.DirectoryName, "Highlight.png"));
         }
 
         public void Dispose()
@@ -94,7 +94,7 @@ namespace OpenerHelper
             ImGui.End();
         }
 
-        void ImGuiDrawSkill(uint id)
+        internal void ImGuiDrawSkill(uint id)
         {
             try
             {

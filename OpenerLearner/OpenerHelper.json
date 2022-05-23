@@ -1,6 +1,11 @@
 ﻿{
-  "Name": "OpenerHelper",
   "Author": "Rylith",
+  "Name": "OpenerHelper",
+  "InternalName": "OpenerHelper",
+  "AssemblyVersion": "9.0.0.0",
   "Description": "-",
-  "RepoUrl": "https://github.com/"
+  "ApplicableVersion": "any",
+  "RepoUrl": "https://github.com/Rylith/OpenerLearner/",
+  "DalamudApiLevel": 6,
+  "LoadPriority": 0
 }

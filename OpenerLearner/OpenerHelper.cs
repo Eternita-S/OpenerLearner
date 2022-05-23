@@ -22,17 +22,15 @@ namespace OpenerHelper
     unsafe class OpenerHelper : IDalamudPlugin
     {
         public string Name => "OpenerHelper";
-        public string AssemblyLocation { get => assemblyLocation; set => assemblyLocation = value; }
-        private string assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
 
-        private Drawer drawer;
+        internal Drawer drawer;
         internal Configuration cfg;
         internal ConfigGui configGui;
 
         public Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> ActionsDic { get; private set; }
         internal (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
 
-        private const ushort FFXIVIpcSkillHandler = 392;
+        private const ushort FFXIVIpcSkillHandler = 747;
 
         private bool inCombat;
 
@@ -42,6 +40,9 @@ namespace OpenerHelper
         internal uint currentSkill = 0;
 
         private uint? currentJob = null;
+
+        //Cache for skills loading
+        internal Dictionary<byte, IEnumerable<Lumina.Excel.GeneratedSheets.Action>> actionCache = new();
 
         public void Dispose()
         {
@@ -224,6 +225,16 @@ namespace OpenerHelper
             BlueMage = 36,
             Gunbreaker = 37,
             Dancer = 38
+        }
+
+        //Get the actions of a job by ID and cache it
+        internal IEnumerable<Lumina.Excel.GeneratedSheets.Action> GetActionsByJobId(byte id)
+        {
+            if (!actionCache.ContainsKey(id))
+            {
+                actionCache[id] = Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Where(x => !x.IsPvP && x.ClassJob.Value.RowId == id);
+            }
+            return actionCache[id];
         }
     }
 }
