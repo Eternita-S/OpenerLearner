@@ -31,7 +31,7 @@ namespace OpenerHelper
         public Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> ActionsDic { get; private set; }
         internal (string[] s, int i) CurrentlySelected = (new string[] { "Opener", "Rotation" }, 0);
 
-        private const ushort FFXIVIpcSkillHandler = 747;
+        private const ushort FFXIVIpcSkillHandler = 185;
 
         private bool inCombat;
 
@@ -154,15 +154,13 @@ namespace OpenerHelper
             {
                 if (drawer.open)
                     Svc.Chat.Print("Went out of combat");
-                if (currentSkills.Length > 0)//Opener
-                {
+
                     currentSkills = cfg.openerDic[(byte)currentJob.Value];//Svc.ClientState.LocalPlayer.ClassJob.Id
                     if (currentSkills.Length > 0)
                         nextSkill = currentSkills[0];
 
                     currentSkill = 0;
                     CurrentlySelected.i = 0;
-                }
             }
             inCombat = Svc.Condition[ConditionFlag.InCombat];
 

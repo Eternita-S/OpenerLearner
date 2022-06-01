@@ -16,7 +16,7 @@ namespace OpenerHelper
         public Dictionary<byte, uint[]> openerDic = new Dictionary<byte, uint[]>();
         public Dictionary<byte, uint[]> rotationDic = new Dictionary<byte, uint[]>();
 
-
+        internal bool AutoHideAfterOpener;
         public void Save()
         {
             Svc.PluginInterface.SavePluginConfig(this);

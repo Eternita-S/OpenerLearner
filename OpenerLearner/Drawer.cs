@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Game.ClientState.Conditions;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImGuiScene;
@@ -44,7 +45,21 @@ namespace OpenerHelper
         private void Draw()
         {
             if (!open) return;
+            if (p.cfg.AutoHideAfterOpener)
+            {
+                ImGui.SetNextWindowCollapsed(p.CurrentlySelected.i == 1 && Svc.Condition[ConditionFlag.InCombat]);
+            }
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
+            /*if (HidePlugin)
+            {
+                HidePlugin = false;
+                ImGui.SetNextWindowCollapsed(true);
+            }
+            if (ShowPlugin)
+            {
+                ShowPlugin = false;
+                ImGui.SetNextWindowCollapsed(false);
+            }*/
             if (ImGui.Begin("OpenerLearner", ref open, ImGuiWindowFlags.MenuBar))
             {
                 if (ImGui.BeginMenuBar())
@@ -68,6 +83,11 @@ namespace OpenerHelper
                             p.nextSkill = p.currentSkills[0];
                         }
                         p.currentSkill = 0;
+                    }
+
+                    if(ImGui.Checkbox("Auto-hide after opener", ref p.cfg.AutoHideAfterOpener))
+                    {
+
                     }
                     ImGui.EndMenuBar();
                 }

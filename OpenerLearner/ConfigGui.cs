@@ -67,7 +67,7 @@ namespace OpenerHelper
                             {
                                 try
                                 {
-                                    p.cfg.openerDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
+                                    p.cfg.openerDic[e] = text == string.Empty ? Array.Empty<uint>() : text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
                                 }
                                 catch (Exception) { }
                             }
@@ -113,7 +113,7 @@ namespace OpenerHelper
                             {
                                 try
                                 {
-                                    p.cfg.rotationDic[e] = text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
+                                    p.cfg.rotationDic[e] = text == string.Empty ? Array.Empty<uint>() : text.Split(',').Select(a => uint.Parse(a.Trim())).ToArray();
                                 }
                                 catch (Exception) { }
                             }
